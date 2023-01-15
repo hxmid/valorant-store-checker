@@ -1,6 +1,19 @@
 from riot_auth import RiotAuth
 import asyncio
 import requests
+from termcolor import colored
+
+watchlist = [
+    "Xenohunter Knife",
+    "Ion Vandal",
+    "VALORANT GO! Vol. 1 Knife",
+    "Gaia's Wrath",
+    "Oni Phantom",
+    "Protocol 781-A Phantom",
+    "Protocol 781-A Sheriff",
+    "Catrina",
+    "Blade of Chaos"
+]
 
 class account:
     def __init__(self, r_u_p: str):
@@ -17,11 +30,10 @@ class account:
         self.tag = acct_key["tag_line"]
 
     def __str__(self):
-        return f"{self.name} #{self.tag} -> [ %s ]" % (", ".join([x.lower() for x in self.store]))
+        return  "%32s -> %s" % (f"{self.name} #{self.tag} ({self.region})", "[ " + ", ".join([colored(x.lower(), 'yellow' if x in watchlist else 'white') for x in self.store]) + " ]")
 
 
-def get_store(acc: account) -> account:
-    auth = RiotAuth()
+def get_store(auth: RiotAuth, acc: account) -> account:
     asyncio.run(auth.authorize(acc.u, acc.p))
 
     userinfo = requests.get("https://auth.riotgames.com/userinfo", headers={"Authorization": f"{auth.token_type} {auth.access_token}"})
@@ -52,11 +64,12 @@ def get_store(acc: account) -> account:
 def main():
     client_version = {requests.get("https://valorant-api.com/v1/version").json()["data"]["riotClientBuild"]}
     RiotAuth.RIOT_CLIENT_USER_AGENT = f"RiotClient/{client_version} %s (Windows;10;;Professional, x64)"
+    auth = RiotAuth()
 
     with open("accounts.txt", 'r') as f:
         for details in f.read().splitlines():
             acc = account(details)
-            acc = get_store(acc)
+            acc = get_store(auth, acc)
 
             print(acc)
 
