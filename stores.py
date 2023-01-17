@@ -5,14 +5,40 @@ from termcolor import colored
 
 watchlist = [
     "Xenohunter Knife",
-    "Ion Vandal",
     "VALORANT GO! Vol. 1 Knife",
-    "Gaia's Wrath",
+    "Gaia's Vengeance Vandal",
     "Oni Phantom",
     "Protocol 781-A Phantom",
     "Protocol 781-A Sheriff",
     "Catrina",
-    "Blade of Chaos"
+    "Blade of Chaos",
+    "Sovereign Sword",
+    "Forsaken Vandal",
+    "Glitchpop Vandal",
+    "Araxys Vandal",
+    "Araxys Bio Harvester",
+    "RGX 11z Pro Vandal",
+    "Sentinels of Light Sheriff"
+]
+
+weapons = [
+    "Classic",
+    "Shorty",
+    "Frenzy",
+    "Ghost",
+    "Sheriff",
+    "Stinger",
+    "Spectre",
+    "Bucky",
+    "Judge",
+    "Vandal",
+    "Phantom",
+    "Marshal",
+    "Operator",
+    "Odin",
+    "Ares",
+    "Bulldog",
+    "Guardian"
 ]
 
 class account:
@@ -30,7 +56,7 @@ class account:
         self.tag = acct_key["tag_line"]
 
     def __str__(self):
-        return  "%32s -> %s" % (f"{self.name} #{self.tag} ({self.region})", "[ " + ", ".join([colored(x.lower(), 'yellow' if x in watchlist else 'white') for x in self.store]) + " ]")
+        return  "%32s -> %s" % (f"{self.name} #{self.tag} ({self.region})", "[ " + ", ".join([colored(x, 'red' if x in watchlist else 'yellow' if x.split()[-1] not in weapons else 'white') for x in self.store]) + " ]")
 
 
 def get_store(auth: RiotAuth, acc: account) -> account:
@@ -67,11 +93,13 @@ def main():
     auth = RiotAuth()
 
     with open("accounts.txt", 'r') as f:
-        for details in f.read().splitlines():
+        for i, details in enumerate(f.read().splitlines()):
+            if details == '---':
+                break
             acc = account(details)
             acc = get_store(auth, acc)
 
-            print(acc)
+            print(f"{i + 1 :2d}. {acc}")
 
 
 if __name__ == "__main__":
