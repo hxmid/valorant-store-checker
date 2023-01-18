@@ -18,7 +18,8 @@ watchlist = [
     "Araxys Vandal",
     "Araxys Bio Harvester",
     "RGX 11z Pro Vandal",
-    "Sentinels of Light Sheriff"
+    "Sentinels of Light Sheriff",
+    "Oni Claw",
 ]
 
 weapons = [
@@ -38,7 +39,7 @@ weapons = [
     "Odin",
     "Ares",
     "Bulldog",
-    "Guardian"
+    "Guardian",
 ]
 
 class account:
@@ -56,7 +57,7 @@ class account:
         self.tag = acct_key["tag_line"]
 
     def __str__(self):
-        return  "%32s -> %s" % (f"{self.name} #{self.tag} ({self.region})", "[ " + ", ".join([colored(x, 'red' if x in watchlist else 'yellow' if x.split()[-1] not in weapons else 'white') for x in self.store]) + " ]")
+        return  "%64s -> %s" % (f"> {self.u}: {self.name} #{self.tag} ({self.region})", "[ " + ", ".join([colored(x, 'red' if x in watchlist else 'yellow' if x.split()[-1] not in weapons else 'white') for x in self.store]) + " ]")
 
 
 def get_store(auth: RiotAuth, acc: account) -> account:
