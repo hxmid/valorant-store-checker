@@ -2,6 +2,7 @@ from riot_auth import RiotAuth
 import asyncio
 import requests
 from termcolor import colored
+import json
 
 watchlist = [
     "Xenohunter Knife",
@@ -42,22 +43,54 @@ weapons = [
     "Guardian",
 ]
 
+VP_INFO = requests.get("https://valorant-api.com/v1/currencies").json()["data"][0]
+
 class account:
-    def __init__(self, r_u_p: str):
-        (r, u, p) = r_u_p.split(":", maxsplit=2)
-        self.u = u
-        self.p = p
-        self.region = r
-        self.name = ""
-        self.tag = ""
-        self.store = []
+    def __init__(self, credentials: str):
+        (self.region, self.u, self.p) = credentials.split(":", maxsplit=2)
+        self.name: str = ""
+        self.tag:str = ""
+        self.store: list(skin) = []
 
     def set_name(self, acct_key: dict):
         self.name = acct_key["game_name"]
         self.tag = acct_key["tag_line"]
 
     def __str__(self):
-        return  "%64s -> %s" % (f"> {self.u}: {self.name} #{self.tag} ({self.region})", "[ " + ", ".join([colored(x, 'red' if x in watchlist else 'yellow' if x.split()[-1] not in weapons else 'white') for x in self.store]) + " ]")
+        if self.name == None:
+            self.name = ""
+        if self.tag == None:
+            self.tag = ""
+        return  f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} ({self.region}) -> " + "[ " + ", ".join([str(x) for x in self.store]) + " ]"
+
+class skin:
+    WATCH = 'red'
+    KNIFE = 'yellow'
+    DEFAULT = 'grey'
+
+    def __init__(self, store_item: dict):
+        self.cost = store_item["Cost"][VP_INFO["uuid"]]
+
+        item_id = store_item["OfferID"]
+        skin_resp = requests.get(f"https://valorant-api.com/v1/weapons/skinlevels/{item_id}")
+        if skin_resp.status_code != 200:
+            print(f"error [{skin_resp.status_code}]: could not get skin")
+            exit()
+
+        self.name = skin_resp.json()["data"]["displayName"]
+
+    def is_knife(self):
+        if self.name.split()[-1] not in weapons:
+            return True
+        return False
+
+    def is_watched(self):
+        if self.name in watchlist:
+            return True
+        return False
+
+    def __str__(self):
+        return colored(f"<{self.cost} VP> {self.name}", skin.WATCH if self.is_watched() else skin.KNIFE if self.is_knife() else skin.DEFAULT)
 
 
 def get_store(auth: RiotAuth, acc: account) -> account:
@@ -75,15 +108,10 @@ def get_store(auth: RiotAuth, acc: account) -> account:
         print(f"error [{store_resp.status_code}]: could not get store")
         exit()
 
-    store = store_resp.json()["SkinsPanelLayout"]["SingleItemOffers"]
+    store = store_resp.json()["SkinsPanelLayout"]["SingleItemStoreOffers"]
 
     for item in store:
-        skin_resp = requests.get(f"https://valorant-api.com/v1/weapons/skinlevels/{item}")
-        if skin_resp.status_code != 200:
-            print(f"error [{skin_resp.status_code}]: could not get skin")
-            exit()
-
-        acc.store.append(skin_resp.json()["data"]["displayName"])
+        acc.store.append(skin(item))
 
     return acc
 
@@ -93,14 +121,21 @@ def main():
     RiotAuth.RIOT_CLIENT_USER_AGENT = f"RiotClient/{client_version} %s (Windows;10;;Professional, x64)"
     auth = RiotAuth()
 
-    with open("accounts.txt", 'r') as f:
-        for i, details in enumerate(f.read().splitlines()):
-            if details == '---':
-                break
-            acc = account(details)
-            acc = get_store(auth, acc)
+    print(open("dump.txt", 'r', encoding= "utf-8").read())
 
-            print(f"{i + 1 :2d}. {acc}")
+    with open("accounts.txt", 'r') as f:
+        with open("dump.txt", 'w', encoding = "utf-8") as d:
+            for i, details in enumerate(f.read().splitlines()):
+                if details == "---":
+                    break
+
+                acc = get_store(auth, account(details))
+
+                s = f"{i + 1 :2d}. {acc}"
+
+                print(s)
+
+                d.write(s + "\n")
 
 
 if __name__ == "__main__":
