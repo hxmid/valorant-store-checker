@@ -11,30 +11,30 @@ watchlist_tiers = {
             "Protocol 781-A Sheriff",
             "VALORANT GO! Vol. 1 Knife",
         ],
-        "value": 7
+        "value": 6
     },
     "a": {
-        "colour": "orange",
+        "colour": "yellow",
         "skins": [
             "Protocol 781-A Phantom",
             "Sovereign Sword",
             "RGX 11z Pro Vandal",
             "Sentinels of Light Sheriff",
         ],
-        "value": 6
+        "value": 5
     },
     "b": {
-        "colour": "yellow",
+        "colour": "green",
         "skins": [
             "Forsaken Vandal",
             "Glitchpop Vandal",
             "Gaia's Vengeance Vandal",
             "Sentinels of Light Vandal"
         ],
-        "value": 5
+        "value": 4
     },
     "c": {
-        "colour": "green",
+        "colour": "cyan",
         "skins": [
             "Ruination Phantom",
             "Araxys Vandal",
@@ -42,30 +42,24 @@ watchlist_tiers = {
             "Magepunk Sheriff",
             "Singularity Phantom",
         ],
-        "value": 4
+        "value": 3
     },
     "d": {
-        "colour": "cyan",
+        "colour": "blue",
         "skins": [
             "Oni Phantom",
             "Blade of Chaos",
             "Araxys Bio Harvester",
         ],
-        "value": 3
+        "value": 2
     },
     "e": {
-        "colour": "purple",
+        "colour": "magenta",
         "skins": [
             "Oni Claw",
         ],
-        "value": 2
-    },
-    "f": {
-        "colour": "pink",
-        "skins": [
-        ],
         "value": 1
-    },
+    }
 }
 
 
@@ -102,7 +96,7 @@ class account:
         self.name: str = ""
         self.tag:str = ""
         self.store: list(skin) = []
-        self.score = 0
+        self.score = -4
 
     def set_name(self, acct_key: dict):
         self.name = acct_key["game_name"]
@@ -110,7 +104,7 @@ class account:
 
     def add_skin(self, s: skin):
         self.store.append(s)
-        self.score += s.value
+        self.score += pow(2, s.value)
 
     def __str__(self):
         if self.name == None:
