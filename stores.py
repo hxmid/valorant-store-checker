@@ -11,7 +11,7 @@ watchlist_tiers = {
             "Protocol 781-A Sheriff",
             "VALORANT GO! Vol. 1 Knife",
         ],
-        "value": 6
+        "value": 5
     },
     "a": {
         "colour": "yellow",
@@ -21,7 +21,7 @@ watchlist_tiers = {
             "RGX 11z Pro Vandal",
             "Sentinels of Light Sheriff",
         ],
-        "value": 5
+        "value": 4
     },
     "b": {
         "colour": "green",
@@ -31,34 +31,36 @@ watchlist_tiers = {
             "Gaia's Vengeance Vandal",
             "Sentinels of Light Vandal"
         ],
-        "value": 4
+        "value": 3
     },
     "c": {
         "colour": "cyan",
         "skins": [
             "Ruination Phantom",
-            "Araxys Vandal",
             "Catrina",
             "Magepunk Sheriff",
             "Singularity Phantom",
         ],
-        "value": 3
+        "value": 2
     },
     "d": {
         "colour": "blue",
         "skins": [
-            "Oni Phantom",
-            "Blade of Chaos",
-            "Araxys Bio Harvester",
+            "Araxys Vandal",
+            "Ion Karambit",
+            "Prime Guardian"
         ],
-        "value": 2
+        "value": 1
     },
     "e": {
         "colour": "magenta",
         "skins": [
+            "Araxys Bio Harvester",
+            "Oni Phantom",
+            "Blade of Chaos",
             "Oni Claw",
         ],
-        "value": 1
+        "value": 0
     }
 }
 
@@ -81,7 +83,8 @@ class skin:
         for tier in watchlist_tiers:
             if self.name in watchlist_tiers[tier]["skins"]:
                 self.colour = watchlist_tiers[tier]["colour"]
-                self.value = watchlist_tiers[tier]["value"]
+                self.value = pow(2, watchlist_tiers[tier]["value"])
+
                 break
         else:
             self.colour = "grey"
@@ -96,7 +99,7 @@ class account:
         self.name: str = ""
         self.tag:str = ""
         self.store: list(skin) = []
-        self.score = -4
+        self.score = 0
 
     def set_name(self, acct_key: dict):
         self.name = acct_key["game_name"]
@@ -104,14 +107,14 @@ class account:
 
     def add_skin(self, s: skin):
         self.store.append(s)
-        self.score += pow(2, s.value)
+        self.score += s.value
 
     def __str__(self):
         if self.name == None:
             self.name = ""
         if self.tag == None:
             self.tag = ""
-        return  f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} ({self.score : 2d}) -> " + "[ " + ", ".join([str(x) for x in self.store]) + " ]"
+        return  f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} ({self.score : >2}) -> " + "[ " + ", ".join([str(x) for x in self.store]) + " ]"
 
     def print(self, i):
         return f"{i + 1 :2d}. {self}"
