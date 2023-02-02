@@ -1,2 +1,4 @@
 accounts.txt
 dump.txt
+*.pyc
+*.cmd
