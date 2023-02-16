@@ -1,11 +1,15 @@
+from typing import List
 from riot_auth import RiotAuth
 from riot_auth.auth_exceptions import RiotAuthenticationError
+from aiohttp.client_exceptions import ClientResponseError
 import requests
-from termcolor import colored
+# from threading import Thread
+# from time import sleep
 
 from account import account
-from skin import skin
 
+
+# THREADS = []
 
 def main() -> None:
     while True:
@@ -32,20 +36,33 @@ def generate() -> None:
 
     with open("accounts.txt", 'r') as f:
         with open("dump.txt", 'w', encoding = "utf-8") as d:
-            accs = []
+            accs: List[account] = []
 
             for i, details in enumerate(f.read().splitlines()):
+
                 if details == "---":
                     break
+
                 acc = account(details)
+
                 try:
+
                     acc.get_store()
+
+                    # t = Thread(target=acc.get_store)
+                    # THREADS.append(t)
+                    # sleep(1)
+                    # t.start()
+
                 except RiotAuthenticationError:
-                    print(f"error: invalid user/pass for account \'{acc.u}\'")
+                    print(f"error: invalid user/pass for account '{acc.u}'")
                     continue
 
                 accs.append(acc)
                 print(f"  parsed {i + 1} account{'s' if i != 0 else ''}... please wait :)", end = '\r')
+
+            # for t in THREADS:
+            #     t.join()
 
             accs.sort(key = lambda x: x.score, reverse = True)
 
