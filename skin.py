@@ -4,9 +4,13 @@ from termcolor import colored
 from json import load
 
 
-EQUIPS = tuple(map(lambda x: x["name"], requests.get("https://api.henrikdev.xyz/valorant/v1/content").json()["equips"]))
-# VP_INFO = requests.get("https://valorant-api.com/v1/currencies").json()["data"][0]
+# tuple(map(lambda x: x["name"], requests.get("https://api.henrikdev.xyz/valorant/v1/content").json()["equips"]))
+EQUIPS = ("Odin", "Ares", "Vandal", "Bulldog", "Phantom", "Judge", "Bucky", "Frenzy", "Classic", "Ghost", "Sheriff", "Shorty", "Operator", "Guardian", "Marshal", "Spectre", "Stinger", "Melee", "Classic")
+
 colours = ["red", "yellow", "light_green", "green", "cyan", "blue", "magenta"]
+
+# requests.get("https://valorant-api.com/v1/currencies").json()
+VP_ID = "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"
 
 watchlist: List[List[str]] = load(open("watchlist.json", 'r'))
 
@@ -14,7 +18,7 @@ class skin(object):
 
     def __init__(self, store_item: dict):
         try:
-            self.cost = int(store_item["Cost"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"])
+            self.cost = int(store_item["Cost"][VP_ID])
         except:
             self.cost = 0
 

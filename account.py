@@ -3,7 +3,7 @@ import requests
 from riot_auth import RiotAuth
 from typing import List
 
-from skin import skin
+from skin import skin, VP_ID
 
 class account(object):
     def __init__(self, credentials: str):
@@ -11,6 +11,7 @@ class account(object):
         self.name: str = ""
         self.tag: str = ""
         self.store: List[skin] = []
+        self.nightmarket: List[skin] = []
         self.score = 0
 
     def set_name(self, acct_key: dict) -> None:
@@ -21,6 +22,13 @@ class account(object):
         self.store.append(s)
         self.score += s.value
 
+    def add_nightmarket_skin(self, d: dict) -> None:
+        s = skin(d["Offer"])
+        s.cost = d["DiscountCosts"][VP_ID]
+        s.value *= (100.0+float(d["DiscountPercent"]))/100.0
+        self.nightmarket.append(s)
+        self.score += s.value
+
     def __str__(self) -> str:
         if self.name == None:
             self.name = ""
@@ -28,7 +36,7 @@ class account(object):
         if self.tag == None:
             self.tag = ""
 
-        return  f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} ({self.score :>6.2f}) -> " + f"({sum(x.contrib_cost for x in self.store): >5} VP) [ " + ", ".join([str(x) for x in self.store]) + " ]"
+        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} ({self.score : >6.2f}) -> " + f"({sum(x.contrib_cost for x in self.store + self.nightmarket): >5} VP) [ " + ", ".join([str(x) for x in self.store]) + " ]" + (("\n       nm -> [ " + ", ".join([str(x) for x in self.nightmarket]) + " ]\n") if self.nightmarket else "")
 
     def print(self, i) -> str:
         return f"{i + 1 : >3d}. {self}"
@@ -54,7 +62,10 @@ class account(object):
             print(f"error [{store_resp.status_code}]: could not get store")
             raise RuntimeError
 
-        store = store_resp.json()["SkinsPanelLayout"]["SingleItemStoreOffers"]
+        store = store_resp.json()
 
-        for item in store:
+        for item in store["SkinsPanelLayout"]["SingleItemStoreOffers"]:
             self.add_skin(skin(item))
+
+        for item in store.get("BonusStore", {}).get("BonusStoreOffers", []):
+            self.add_nightmarket_skin(item)

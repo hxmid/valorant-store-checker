@@ -8,7 +8,6 @@ import requests
 
 from account import account
 
-
 # THREADS = []
 
 def main() -> None:
