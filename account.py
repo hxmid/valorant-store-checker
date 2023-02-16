@@ -36,7 +36,7 @@ class account(object):
         if self.tag == None:
             self.tag = ""
 
-        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} ({self.score : >6.2f}) -> " + f"({sum(x.contrib_cost for x in self.store + self.nightmarket): >5} VP) [ " + ", ".join([str(x) for x in self.store]) + " ]" + (("\n       nm -> [ " + ", ".join([str(x) for x in self.nightmarket]) + " ]\n") if self.nightmarket else "")
+        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} ({self.score : >6.2f}) -> " + f"({sum(x.cost for x in self.store + self.nightmarket if x.contrib_cost): >5} VP) [ " + ", ".join([str(x) for x in self.store]) + " ]" + (("\n       nm -> [ " + ", ".join([str(x) for x in self.nightmarket]) + " ]\n") if self.nightmarket else "")
 
     def print(self, i) -> str:
         return f"{i + 1 : >3d}. {self}"

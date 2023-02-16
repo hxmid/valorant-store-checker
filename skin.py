@@ -36,10 +36,10 @@ class skin(object):
                 self.colour = colours[i]
                 self.value = pow(2, len(watchlist) - i)
                 self.value += self.value * (len(loadout) - (loadout.index(self.name) + 1)) / len(loadout)
-                self.contrib_cost = self.cost
+                self.contrib_cost = True
                 break
         else:
-            self.contrib_cost = 0
+            self.contrib_cost = False
             if not self.name.endswith(EQUIPS):
                 self.colour = "light_grey"
                 self.value = 1.0
