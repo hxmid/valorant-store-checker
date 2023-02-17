@@ -3,6 +3,7 @@ from riot_auth import RiotAuth
 from riot_auth.auth_exceptions import RiotAuthenticationError
 from aiohttp.client_exceptions import ClientResponseError
 import requests
+import argparse
 # from threading import Thread
 # from time import sleep
 
@@ -10,19 +11,11 @@ from account import account
 
 # THREADS = []
 
-def main() -> None:
-    while True:
-        response = input("[g]enerate new or [d]ump previous ? ")
-
-        if response == "g":
-            generate()
-            return
-
-        elif response == "d":
-            dump()
-            return
-
-        print(f"'{response}' wasn't an option. try again")
+def main(gen: bool) -> None:
+    if gen:
+        generate()
+    else:
+        dump()
 
 
 def dump() -> None:
@@ -38,6 +31,12 @@ def generate() -> None:
             accs: List[account] = []
 
             for i, details in enumerate(f.read().splitlines()):
+
+                if not details:
+                    continue
+
+                if details.startswith("//"):
+                    continue
 
                 if details == "---":
                     break
@@ -58,7 +57,7 @@ def generate() -> None:
                     continue
 
                 accs.append(acc)
-                print(f"  parsed {i + 1} account{'s' if i != 0 else ''}... please wait :)", end = '\r')
+                print(f"  parsed {i + 1} account{'s' if i else ''}... please wait :)", end = '\r')
 
             # for t in THREADS:
             #     t.join()
@@ -71,4 +70,14 @@ def generate() -> None:
 
 
 if __name__ == "__main__":
-    main()
+
+    argparser = argparse.ArgumentParser()
+
+    argparser.add_argument(
+        "-g", "--gen",
+        action = "store_true",
+        dest = "g",
+        help = "regenerate instead of dumping previous"
+    )
+
+    main(argparser.parse_args().g)
