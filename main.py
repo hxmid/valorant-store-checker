@@ -1,7 +1,8 @@
-from typing import List
+import json
+from typing import Dict, List
 from riot_auth import RiotAuth
 from riot_auth.auth_exceptions import RiotAuthenticationError
-from aiohttp.client_exceptions import ClientResponseError
+# from aiohttp.client_exceptions import ClientResponseError
 import requests
 import argparse
 # from threading import Thread
@@ -19,7 +20,19 @@ def main(gen: bool) -> None:
 
 
 def dump() -> None:
-    print(open("dump.txt", 'r', encoding = "utf-8").read())
+    data: List[Dict] = json.load(open("stores.json", 'r'))
+    stores: List[account] = []
+
+    for x in data:
+        a = account()
+        a.fromdict(x)
+        a.calc_score()
+        stores.append(a)
+
+    stores.sort(key = lambda x: x.score, reverse = True)
+
+    for i, s in enumerate(stores):
+        print(s.print(i))
 
 
 def generate() -> None:
@@ -44,7 +57,6 @@ def generate() -> None:
                 acc = account(details)
 
                 try:
-
                     acc.get_store()
 
                     # t = Thread(target=acc.get_store)
@@ -64,9 +76,10 @@ def generate() -> None:
 
             accs.sort(key = lambda x: x.score, reverse = True)
 
-            for i, acc in enumerate(accs):
-                print(acc.print(i))
-                d.write(acc.write(i))
+            with open("stores.json", 'w') as f:
+                for i, acc in enumerate(accs):
+                    print(acc.print(i))
+                json.dump([acc.asdict() for acc in accs], f, indent = 2)
 
 
 if __name__ == "__main__":
