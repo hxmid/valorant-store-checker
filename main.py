@@ -1,7 +1,8 @@
 import json
+from time import sleep
 from typing import Dict, List
 from riot_auth import RiotAuth
-from riot_auth.auth_exceptions import RiotAuthenticationError
+from riot_auth.auth_exceptions import RiotAuthenticationError, RiotRatelimitError
 # from aiohttp.client_exceptions import ClientResponseError
 import requests
 import argparse
@@ -26,13 +27,17 @@ def dump() -> None:
     for x in data:
         a = account()
         a.fromdict(x)
-        a.calc_score()
-        stores.append(a)
+        if a.score > 0:
+            stores.append(a)
+
 
     stores.sort(key = lambda x: x.score, reverse = True)
 
     for i, s in enumerate(stores):
         print(s.print(i))
+
+    with open("new_stores.json", 'w') as f:
+        json.dump([acc.asdict() for acc in stores], f, indent = 2)
 
 
 def generate() -> None:
@@ -56,17 +61,26 @@ def generate() -> None:
 
                 acc = account(details)
 
-                try:
-                    acc.get_store()
+                while True:
+                    try:
+                        acc.get_store()
 
-                    # t = Thread(target=acc.get_store)
-                    # THREADS.append(t)
-                    # sleep(1)
-                    # t.start()
+                        # t = Thread(target=acc.get_store)
+                        # THREADS.append(t)
+                        # sleep(1)
+                        # t.start()
 
-                except RiotAuthenticationError:
-                    print(f"error: invalid user/pass for account '{acc.u}'")
-                    continue
+                    except RiotAuthenticationError as e:
+                        print(f"error: invalid user/pass for account '{acc.u}'")
+                        raise e
+
+                    except RiotRatelimitError:
+                        print(f"error: rate limited, trying again :)  ", end = "\r")
+                        sleep(15)
+                        continue
+
+                    else:
+                        break
 
                 accs.append(acc)
                 print(f"  parsed {i + 1} account{'s' if i else ''}... please wait :)", end = '\r')
@@ -74,12 +88,18 @@ def generate() -> None:
             # for t in THREADS:
             #     t.join()
 
+            with open("new_accounts.txt", 'w') as f:
+                for acc in accs:
+                    if acc.store > 0:
+                        f.write(f"{acc.region}:{acc.u}:{acc.p}\n")
+
             accs.sort(key = lambda x: x.score, reverse = True)
 
             with open("stores.json", 'w') as f:
                 for i, acc in enumerate(accs):
                     print(acc.print(i))
                 json.dump([acc.asdict() for acc in accs], f, indent = 2)
+
 
 
 if __name__ == "__main__":

@@ -18,14 +18,6 @@ class account(object):
         self.name = acct_key["game_name"]
         self.tag = acct_key["tag_line"]
 
-    def add_skin(self, s: skin) -> None:
-        self.store.append(s)
-        self.score += s.value
-
-    def add_nm_skin(self, n: nm_skin) -> None:
-        self.nm.append(n)
-        self.score += n.value
-
     def __str__(self) -> str:
         if self.name == None:
             self.name = ""
@@ -33,7 +25,7 @@ class account(object):
         if self.tag == None:
             self.tag = ""
 
-        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({sum([x.cost for x in self.store + self.nm if x.value]) : >5} VP) [ " + ", ".join([str(x) for x in self.store]) + " ]" + (("\n\tnm -> [ " + ", ".join([str(x) for x in self.nm]) + " ]\n") if self.nm else "")
+        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value]) :05d} VP> [ " + ", ".join([str(x) for x in self.store]) + " ]" + (("\n\tnm -> [ " + ", ".join([str(x) for x in self.nm]) + " ]\n") if self.nm else "")
 
     def print(self, i) -> str:
         return f"{i + 1 : >3d}. {self}"
@@ -63,12 +55,14 @@ class account(object):
         for item in store.get("SkinsPanelLayout", {}).get("SingleItemStoreOffers", []):
             s = skin()
             s.update_info_from_server(item)
-            self.add_skin(s)
+            self.store.append(s)
 
         for item in store.get("BonusStore", {}).get("BonusStoreOffers", []):
             s = nm_skin()
             s.update_info_from_server(item)
-            self.add_nm_skin(s)
+            self.nm.append(s)
+
+        self.calc_score()
 
     def asdict(self):
         return {
@@ -85,6 +79,8 @@ class account(object):
         self.tag    = str(d.get("tag", ""))
         self.store  = [skin(x, True) for x in d.get("store", [])]
         self.nm     = [nm_skin(x, True) for x in d.get("nm", [])]
+        self.calc_score()
 
-    def calc_score(self) -> int:
-        self.score = float(sum([x.value for x in self.store + self.nm]))
+    def calc_score(self) -> None:
+        # self.score = float(sum([x.value for x in self.store + self.nm]))
+        self.score = float(sum([x.value for x in self.nm]))

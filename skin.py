@@ -31,7 +31,7 @@ class skin(object):
             self.update_value()
 
     def __str__(self) -> str:
-        return colored(f"<{self.cost : >4} VP> {self.name}", self.colour, attrs = (["bold", "underline"] if self.is_melee() else None))
+        return colored(f"<{self.cost :04d} VP> {self.name}", self.colour, attrs = (["bold", "underline"] if self.is_melee() else None))
 
     def asdict(self) -> Dict[str, Union[str, int]]:
         return {
@@ -53,7 +53,7 @@ class skin(object):
         if self.name in watchlist:
             colour = round( ((watchlist.index(self.name)) / float(len(watchlist))) * float(len(COLOURS) - 1.0) )
             self.colour = COLOURS[colour]
-            self.value = float(pow(2, len(watchlist) - watchlist.index(self.name)))
+            self.value = float(pow(1.3, len(watchlist) - watchlist.index(self.name)))
             self.value += self.value * float( len(watchlist) - (watchlist.index(self.name) + 1) ) / float(len(watchlist))
 
     def is_melee(self) -> bool:
