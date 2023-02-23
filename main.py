@@ -83,22 +83,23 @@ def generate() -> None:
                         break
 
                 accs.append(acc)
-                print(f"  parsed {i + 1} account{'s' if i else ''}... please wait :)", end = '\r')
+                print(f"\tparsed {i + 1} account{'s' if i else ''}... please wait :)", end = '\r')
 
             # for t in THREADS:
             #     t.join()
 
             with open("new_accounts.txt", 'w') as f:
                 for acc in accs:
-                    if acc.store > 0:
+                    if acc.score > 0:
                         f.write(f"{acc.region}:{acc.u}:{acc.p}\n")
 
             accs.sort(key = lambda x: x.score, reverse = True)
 
-            with open("stores.json", 'w') as f:
-                for i, acc in enumerate(accs):
-                    print(acc.print(i))
-                json.dump([acc.asdict() for acc in accs], f, indent = 2)
+            for i, acc in enumerate(accs):
+                print(acc.print(i))
+
+            # with open("stores.json", 'w') as f:
+            #     json.dump([acc.asdict() for acc in accs], f, indent = 2)
 
 
 
