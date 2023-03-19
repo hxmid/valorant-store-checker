@@ -1,3 +1,5 @@
+#!/usr/env/bin python
+
 import json
 from time import sleep
 from typing import Dict, List
@@ -29,7 +31,6 @@ def dump() -> None:
         a.fromdict(x)
         if a.score > 0:
             stores.append(a)
-
 
     stores.sort(key = lambda x: x.score, reverse = True)
 

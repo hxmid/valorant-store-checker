@@ -13,8 +13,7 @@ COLOURS = ("red", "yellow", "green", "cyan", "blue", "magenta")
 # requests.get("https://valorant-api.com/v1/currencies").json()
 VP_ID = "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"
 
-SKINS = requests.get("https://valorant-api.com/v1/weapons/skinlevels").json().get("data", [])
-SKINS = {x["uuid"]: {k: v for k, v in x.items() if k != "uuid"} for x in SKINS}
+SKINS = {x["uuid"]: {k: v for k, v in x.items() if k != "uuid"} for x in requests.get("https://valorant-api.com/v1/weapons/skinlevels").json().get("data", [])}
 
 watchlist: List[str] = load(open("watchlist.json", 'r'))
 
