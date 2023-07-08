@@ -99,8 +99,8 @@ def generate() -> None:
             for i, acc in enumerate(accs):
                 print(acc.print(i))
 
-            # with open("stores.json", 'w') as f:
-            #     json.dump([acc.asdict() for acc in accs], f, indent = 2)
+            with open("stores.json", 'w') as f:
+                json.dump([acc.asdict() for acc in accs], f, indent = 2)
 
 
 

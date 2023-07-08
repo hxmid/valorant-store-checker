@@ -50,7 +50,7 @@ class account(object):
         store_resp = requests.get(f"https://pd.{self.region}.a.pvp.net/store/v2/storefront/{auth.user_id}", headers={"X-Riot-Entitlements-JWT": f"{auth.entitlements_token}", "Authorization": f"{auth.token_type} {auth.access_token}"})
 
         if store_resp.status_code != 200:
-            print(f"error [{store_resp.status_code}]: could not get store")
+            print(f"error [{store_resp.status_code}]: could not get store for account '{self.u}'")
             raise RuntimeError
 
         store: dict = store_resp.json()
