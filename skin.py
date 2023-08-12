@@ -69,7 +69,7 @@ class nm_skin(skin):
     def asdict(self) -> Dict[str, Union[str, int, float]]:
         return {
             **super().asdict(),
-            "discount": float(self.discount, 0.0)
+            "discount": float(self.discount)
         }
 
     def fromdict(self, d: Dict[str, Union[str, int]]) -> None:
