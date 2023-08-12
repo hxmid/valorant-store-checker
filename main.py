@@ -15,11 +15,11 @@ from account import account
 
 # THREADS = []
 
-def main(gen: bool) -> None:
-    if gen:
-        generate()
-    else:
+def main(d: bool) -> None:
+    if d:
         dump()
+    else:
+        generate()
 
 
 def dump() -> None:
@@ -29,7 +29,7 @@ def dump() -> None:
     for x in data:
         a = account()
         a.fromdict(x)
-        if a.score > 0:
+        if a.score >= 0:
             stores.append(a)
 
     stores.sort(key = lambda x: x.score, reverse = True)
@@ -76,22 +76,23 @@ def generate() -> None:
                         raise e
 
                     except RiotRatelimitError:
-                        print(f"error: rate limited, trying again :)  ", end = "\r")
+                        print(f"error: rate limited, trying again :)")
                         sleep(15)
                         continue
 
                     else:
                         break
 
-                accs.append(acc)
-                print(f"\tparsed {i + 1} account{'s' if i else ''}... please wait :)", end = '\r')
+                if acc.score >= 0:
+                    accs.append(acc)
 
+                print(f"\tparsed {i + 1} account{'s' if i else ''}... please wait :)")
             # for t in THREADS:
             #     t.join()
 
             with open("new_accounts.txt", 'w') as f:
                 for acc in accs:
-                    if acc.score > 0:
+                    if acc.score >= 0:
                         f.write(f"{acc.region}:{acc.u}:{acc.p}\n")
 
             accs.sort(key = lambda x: x.score, reverse = True)
@@ -109,10 +110,10 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
 
     argparser.add_argument(
-        "-g", "--gen",
+        "-d", "--dump",
         action = "store_true",
-        dest = "g",
-        help = "regenerate instead of dumping previous"
+        dest = "dump",
+        help = "dump previous instead of regenerating"
     )
 
-    main(argparser.parse_args().g)
+    main(argparser.parse_args().dump)

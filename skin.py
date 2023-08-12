@@ -69,12 +69,13 @@ class nm_skin(skin):
     def asdict(self) -> Dict[str, Union[str, int, float]]:
         return {
             **super().asdict(),
-            "discount": self.discount
+            "discount": float(self.discount, 0.0)
         }
 
     def fromdict(self, d: Dict[str, Union[str, int]]) -> None:
         super().fromdict(d)
         self.discount = float(d.get("discount", 0.0))
+        self.update_value()
 
     def update_info_from_server(self, nm_item: dict) -> None:
         super().update_info_from_server(nm_item["Offer"])

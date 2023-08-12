@@ -26,8 +26,8 @@ class account(object):
             self.tag = ""
 
         # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value]) :05d} VP> [ " + ", ".join([str(x) for x in self.store if x.value]) + " ]" + (("\n\tnm -> [ " + ", ".join([str(x) for x in self.nm if x.value]) + " ]\n") if self.nm else "")
-        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value]) :05d} VP> [ {', '.join([str(x) for x in self.store])} ]" + (("\n\tnm -> [ " + ", ".join([str(x) for x in self.nm]) + " ]\n") if self.nm else "")
-        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score : >.2e}) <{sum([x.cost for x in self.nm if x.value]) :05d} VP> [ " + ", ".join([str(x) for x in self.nm if x.value]) + " ]\n"
+        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value]) :05d} VP> [ {', '.join([str(x) for x in self.store])} ]" + (("\n\tnm -> [ " + ", ".join([str(x) for x in self.nm]) + " ]\n") if self.nm else "")
+        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score : >.2e}) <{sum([x.cost for x in self.nm if x.value]) :05d} VP> [ " + ", ".join([str(x) for x in self.nm if x.value]) + " ]\n"
 
     def print(self, i) -> str:
         return f"{i + 1 : >3d}. {self}"
