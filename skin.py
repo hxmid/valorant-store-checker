@@ -15,13 +15,25 @@ VP_ID = "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"
 
 SKINS = {x["uuid"]: {k: v for k, v in x.items() if k != "uuid"} for x in requests.get("https://valorant-api.com/v1/weapons/skinlevels").json().get("data", [])}
 
-watchlist: List[str] = load(open("watchlist.json", 'r'))
+watchlist: Dict[str, List[str]] = load(open("watchlist.json", "r"))
 
-SCORES: Dict[str, Tuple[str, float]] = {
-    s: (
-        COLOURS[round( ((watchlist.index(s)) / float(len(watchlist))) * float(len(COLOURS) - 1.0) )],
-        float(pow(2, len(watchlist) - watchlist.index(s)))
-    ) for s in watchlist
+def get_scores():
+    scores = {}
+    for tier in watchlist.keys():
+        for skin in watchlist[tier]:
+            scores.update({skin: (COLOURS[round( ((sorted(list(watchlist.keys()), key=lambda x: float(x), reverse=True).index(tier)) / float(len(watchlist.keys()))) * float(len(COLOURS) - 1.0) )], float(tier))})
+    return scores
+SCORES: Dict[str, Tuple[str, float]] = get_scores()
+del get_scores
+
+# TODO: find a way to figure out how much per skin and then per account
+tr_prices = {
+    "115" : 17,
+    "485" : 70,
+    "925" : 130,
+    "1850": 250,
+    "3400": 450,
+    "5550": 700
 }
 
 class skin(object):
@@ -64,6 +76,9 @@ class nm_skin(skin):
         super().__init__(d)
         self.fromdict(d)
 
+    def __str__(self) -> str:
+        return colored(f"<{self.cost :04d} VP ({int(self.discount)}%)> {self.name}", self.colour(), attrs = (["bold", "underline"] if self.is_melee() else None))
+
     def asdict(self) -> Dict[str, Union[str, int, float]]:
         return {
             **super().asdict(),
@@ -81,7 +96,7 @@ class nm_skin(skin):
         self.discount = float(nm_item.get("DiscountPercent", 0.0))
 
     def value(self) -> float:
-        return super().value() * ((100.0 + self.discount) / 100)
+        return super().value() * ((100.0 + (self.discount ** 4)) / 100)
 
     def colour(self) -> str:
         return super().colour()

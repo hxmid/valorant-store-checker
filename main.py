@@ -18,7 +18,7 @@ def main(d: bool) -> None:
 
 
 def dump() -> None:
-    data: List[Dict] = json.load(open("stores.json", 'r'))
+    data: List[Dict] = json.load(open("stores.json", "r"))
     stores: List[account] = []
 
     for x in data:
@@ -31,7 +31,7 @@ def dump() -> None:
     for i, s in enumerate(stores):
         print(s.print(i))
 
-    with open("new_stores.json", 'w') as f:
+    with open("new_stores.json", "w") as f:
         json.dump([acc.asdict() for acc in stores], f, indent = 2)
 
 
@@ -39,8 +39,8 @@ def generate() -> None:
     client_version: str = requests.get("https://valorant-api.com/v1/version").json()["data"]["riotClientBuild"]
     RiotAuth.RIOT_CLIENT_USER_AGENT = f"RiotClient/{client_version} %s (Windows;10;;Professional, x64)"
 
-    with open("accounts.txt", 'r') as f:
-        with open("dump.txt", 'w', encoding = "utf-8") as d:
+    with open("accounts.txt", "r") as f:
+        with open("dump.txt", "w", encoding = "utf-8") as d:
             accs: List[account] = []
 
             for i, details in enumerate(f.read().splitlines()):
@@ -77,7 +77,7 @@ def generate() -> None:
 
                 print(f"\tparsed {i + 1} account{'s' if i else ''} ...")
 
-            with open("new_accounts.txt", 'w') as f:
+            with open("new_accounts.txt", "w") as f:
                 for acc in accs:
                     if acc.score() >= 0:
                         f.write(f"{acc.region}:{acc.u}:{acc.p}\n")
@@ -87,20 +87,17 @@ def generate() -> None:
             for i, acc in enumerate(accs):
                 print(acc.print(i))
 
-            with open("stores.json", 'w') as f:
+            with open("stores.json", "w") as f:
                 json.dump([acc.asdict() for acc in accs], f, indent = 2)
 
 
 
 if __name__ == "__main__":
-
     argparser = argparse.ArgumentParser()
-
     argparser.add_argument(
         "-d", "--dump",
         action = "store_true",
         dest = "dump",
         help = "dump previous instead of regenerating"
     )
-
     main(argparser.parse_args().dump)
