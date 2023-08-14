@@ -2,3 +2,5 @@ accounts.txt
 dump.txt
 *.pyc
 *.cmd
+*.txt
+*.json
