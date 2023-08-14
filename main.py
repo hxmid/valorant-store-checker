@@ -5,15 +5,10 @@ from time import sleep
 from typing import Dict, List
 from riot_auth import RiotAuth
 from riot_auth.auth_exceptions import RiotAuthenticationError, RiotRatelimitError
-# from aiohttp.client_exceptions import ClientResponseError
 import requests
 import argparse
-# from threading import Thread
-# from time import sleep
 
 from account import account
-
-# THREADS = []
 
 def main(d: bool) -> None:
     if d:
@@ -27,12 +22,11 @@ def dump() -> None:
     stores: List[account] = []
 
     for x in data:
-        a = account()
-        a.fromdict(x)
-        if a.score >= 0:
+        a = account().fromdict(x)
+        if a.score() > 0:
             stores.append(a)
 
-    stores.sort(key = lambda x: x.score, reverse = True)
+    stores.sort(key = lambda x: x.score(), reverse = True)
 
     for i, s in enumerate(stores):
         print(s.print(i))
@@ -66,36 +60,29 @@ def generate() -> None:
                     try:
                         acc.get_store()
 
-                        # t = Thread(target=acc.get_store)
-                        # THREADS.append(t)
-                        # sleep(1)
-                        # t.start()
-
                     except RiotAuthenticationError as e:
                         print(f"error: invalid user/pass for account '{acc.u}'")
                         raise e
 
                     except RiotRatelimitError:
-                        print(f"error: rate limited, trying again :)")
+                        print(f"error: rate limited, trying again ...")
                         sleep(15)
                         continue
 
                     else:
                         break
 
-                if acc.score >= 0:
+                if acc.score() >= 0:
                     accs.append(acc)
 
-                print(f"\tparsed {i + 1} account{'s' if i else ''}... please wait :)")
-            # for t in THREADS:
-            #     t.join()
+                print(f"\tparsed {i + 1} account{'s' if i else ''} ...")
 
             with open("new_accounts.txt", 'w') as f:
                 for acc in accs:
-                    if acc.score >= 0:
+                    if acc.score() >= 0:
                         f.write(f"{acc.region}:{acc.u}:{acc.p}\n")
 
-            accs.sort(key = lambda x: x.score, reverse = True)
+            accs.sort(key = lambda x: x.score(), reverse = True)
 
             for i, acc in enumerate(accs):
                 print(acc.print(i))

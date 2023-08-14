@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Tuple
 import requests
 from termcolor import colored
 from json import load
@@ -17,20 +17,22 @@ SKINS = {x["uuid"]: {k: v for k, v in x.items() if k != "uuid"} for x in request
 
 watchlist: List[str] = load(open("watchlist.json", 'r'))
 
+SCORES: Dict[str, Tuple[str, float]] = {
+    s: (
+        COLOURS[round( ((watchlist.index(s)) / float(len(watchlist))) * float(len(COLOURS) - 1.0) )],
+        float(pow(2, len(watchlist) - watchlist.index(s)))
+    ) for s in watchlist
+}
+
 class skin(object):
 
-    def __init__(self, d: Dict[str, Union[str, int]] = {}, update: bool = False):
+    def __init__(self, d: Dict[str, Union[str, int]] = {}):
         self.name = ""
         self.cost = 0
-        self.value = 0.0
-        self.colour = "dark_grey"
         self.fromdict(d)
 
-        if update:
-            self.update_value()
-
     def __str__(self) -> str:
-        return colored(f"<{self.cost :04d} VP> {self.name}", self.colour, attrs = (["bold", "underline"] if self.is_melee() else None))
+        return colored(f"<{self.cost :04d} VP> {self.name}", self.colour(), attrs = (["bold", "underline"] if self.is_melee() else None))
 
     def asdict(self) -> Dict[str, Union[str, int]]:
         return {
@@ -46,25 +48,21 @@ class skin(object):
     def update_info_from_server(self, store_item: dict) -> None:
         self.cost = int(store_item.get("Cost", {}).get(VP_ID, 0))
         self.name: str = SKINS.get(store_item.get("OfferID")).get("displayName", "")
-        self.update_value()
 
-    def update_value(self) -> None:
-        if self.name in watchlist:
-            colour = round( ((watchlist.index(self.name)) / float(len(watchlist))) * float(len(COLOURS) - 1.0) )
-            self.colour = COLOURS[colour]
-            self.value = float(pow(1.3, len(watchlist) - watchlist.index(self.name)))
-            self.value += self.value * float( len(watchlist) - (watchlist.index(self.name) + 1) ) / float(len(watchlist))
+    def colour(self) -> str:
+        return SCORES.get(self.name, ("dark_grey", 0.0))[0]
+
+    def value(self) -> float:
+        return SCORES.get(self.name, ("dark_grey", 0.0))[1]
 
     def is_melee(self) -> bool:
         return not self.name.endswith(EQUIPS)
 
 class nm_skin(skin):
-    def __init__(self, d: Dict[str, Union[str, int]] = {}, update: bool = False):
-        super().__init__(d, update)
+    def __init__(self, d: Dict[str, Union[str, int]] = {}):
         self.discount = 0.0
-
-        if update:
-            self.update_value()
+        super().__init__(d)
+        self.fromdict(d)
 
     def asdict(self) -> Dict[str, Union[str, int, float]]:
         return {
@@ -75,14 +73,15 @@ class nm_skin(skin):
     def fromdict(self, d: Dict[str, Union[str, int]]) -> None:
         super().fromdict(d)
         self.discount = float(d.get("discount", 0.0))
-        self.update_value()
+        return self
 
     def update_info_from_server(self, nm_item: dict) -> None:
         super().update_info_from_server(nm_item["Offer"])
         self.cost = nm_item.get("DiscountCosts", {}).get(VP_ID, 0)
         self.discount = float(nm_item.get("DiscountPercent", 0.0))
-        self.update_value()
 
-    def update_value(self) -> None:
-        super().update_value()
-        self.value *= ( 100.0 + (2.0 * float(self.discount)) ) / 50.0
+    def value(self) -> float:
+        return super().value() * ((100.0 + self.discount) / 100)
+
+    def colour(self) -> str:
+        return super().colour()

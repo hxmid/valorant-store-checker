@@ -12,7 +12,6 @@ class account(object):
         self.tag: str = ""
         self.store: List[skin] = []
         self.nm: List[nm_skin] = []
-        self.score = 0.0
 
     def set_name(self, acct_key: dict) -> None:
         self.name = acct_key["game_name"]
@@ -25,9 +24,10 @@ class account(object):
         if self.tag == None:
             self.tag = ""
 
-        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value]) :05d} VP> [ " + ", ".join([str(x) for x in self.store if x.value]) + " ]" + (("\n\tnm -> [ " + ", ".join([str(x) for x in self.nm if x.value]) + " ]\n") if self.nm else "")
-        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value]) :05d} VP> [ {', '.join([str(x) for x in self.store])} ]" + (("\n\tnm -> [ " + ", ".join([str(x) for x in self.nm]) + " ]\n") if self.nm else "")
-        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score : >.2e}) <{sum([x.cost for x in self.nm if x.value]) :05d} VP> [ " + ", ".join([str(x) for x in self.nm if x.value]) + " ]\n"
+        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score() : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value()]) :05d} VP> [ " + ", ".join([str(x) for x in self.store if x.value()]) + " ]" + (("\tnm -> [ " + ", ".join([str(x) for x in self.nm if x.value()]) + " ]\n") if self.nm else "")
+        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score() : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value()]) :05d} VP> [ {', '.join([str(x) for x in self.store])} ]" + (("\tnm -> [ " + ", ".join([str(x) for x in self.nm]) + " ]\n") if self.nm else "")
+        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score() : >.2e}) <{sum([x.cost for x in self.nm if x.value()]) :05d} VP> [ " + ", ".join([str(x) for x in self.nm if x.value()]) + " ]\n"
+        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score() : >.2e}) <{sum([x.cost for x in self.nm if x.value()]) :05d} VP> [ " + ", ".join([str(x) for x in self.nm]) + " ]\n"
 
     def print(self, i) -> str:
         return f"{i + 1 : >3d}. {self}"
@@ -70,8 +70,6 @@ class account(object):
             self.store.extend(ap_store.store)
             self.nm.extend(ap_store.nm)
 
-        self.calc_score()
-
     def asdict(self):
         return {
             "username": self.u,
@@ -85,10 +83,10 @@ class account(object):
         self.u      = str(d.get("username", ""))
         self.name   = str(d.get("name", ""))
         self.tag    = str(d.get("tag", ""))
-        self.store  = [skin(x, True) for x in d.get("store", [])]
-        self.nm     = [nm_skin(x, True) for x in d.get("nm", [])]
-        self.calc_score()
+        self.store  = [skin(x) for x in d.get("store", [])]
+        self.nm     = [nm_skin(x) for x in d.get("nm", [])]
+        return self
 
-    def calc_score(self) -> None:
-        self.score = float(sum([x.value for x in self.store + self.nm]))
-        # self.score = float(sum([x.value for x in self.nm]))
+    def score(self) -> float:
+        # return float(sum([x.value for x in self.store + self.nm]))
+        return float(sum([x.value() for x in self.nm]))
