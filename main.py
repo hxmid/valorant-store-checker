@@ -7,6 +7,7 @@ from riot_auth import RiotAuth
 from riot_auth.auth_exceptions import RiotAuthenticationError, RiotRatelimitError
 import requests
 import argparse
+from aiohttp.client_exceptions import ClientResponseError, ClientConnectorError
 
 from account import account
 
@@ -23,7 +24,7 @@ def dump() -> None:
 
     for x in data:
         a = account().fromdict(x)
-        if a.score() > 0:
+        if a.score() >= 0:
             stores.append(a)
 
     stores.sort(key = lambda x: x.score(), reverse = True)
@@ -64,9 +65,14 @@ def generate() -> None:
                         print(f"error: invalid user/pass for account '{acc.u}'")
                         raise e
 
-                    except RiotRatelimitError:
-                        print(f"error: rate limited, trying again ...")
-                        sleep(15)
+                    except ClientConnectorError:
+                        print(f"error: not connected yet, trying again ...")
+                        sleep(10)
+                        continue
+
+                    except ClientResponseError or RiotRatelimitError:
+                        print(f"error: rate limited, switch vpn ...")
+                        input("\rready? ")
                         continue
 
                     else:
@@ -75,7 +81,7 @@ def generate() -> None:
                 if acc.score() >= 0:
                     accs.append(acc)
 
-                print(f"\tparsed {i + 1} account{'s' if i else ''} ...")
+                print(f"\tparsed {i + 1} account{'s' if i else ' '}  ...")
 
             with open("new_accounts.txt", "w") as f:
                 for acc in accs:
