@@ -1,16 +1,17 @@
 import asyncio
 import requests
 from riot_auth import RiotAuth
-# from custom_auth import RiotAuth_ as RiotAuth
+# from custom_auth import RiotAuth
 from typing import List
 
-from skin import nm_skin, skin
+from skin import nm_skin, skin, vp, ml_prices
 
 class account(object):
+    CLIENT_VERSION : str = requests.get("https://valorant-api.com/v1/version").json()["data"]["riotClientVersion"]
     def __init__(self, credentials: str = ":::"):
         (self.region, self.u, self.p) = credentials.split(":", maxsplit=2)
-        self.name: str = ""
-        self.tag: str = ""
+        self.name : str = ""
+        self.tag : str = ""
         self.store: List[skin] = []
         self.nm: List[nm_skin] = []
 
@@ -18,17 +19,46 @@ class account(object):
         self.name = acct_key["game_name"]
         self.tag = acct_key["tag_line"]
 
+    def get_vp_price(self) -> int:
+        return sum([x.cost for x in self.store + self.nm if x.value()])
+
+    def get_cost(self) -> float:
+        total_cost = 0
+        vp_price = self.get_vp_price()
+        for i in range(len(ml_prices)):
+            while (vp_price >= ml_prices[i].points):
+                vp_price -= ml_prices[i].points
+                total_cost += ml_prices[i].price
+        return total_cost
+
     def __str__(self) -> str:
+
+        s = ""
+
         if self.name == None:
             self.name = ""
 
         if self.tag == None:
             self.tag = ""
 
-        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score() : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value()]) :05d} VP> [ " + ", ".join([str(x) for x in self.store if x.value()]) + " ]" + (("\tnm -> [ " + ", ".join([str(x) for x in self.nm if x.value()]) + " ]\n") if self.nm else "")
-        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score() : >.2e}) <{sum([x.cost for x in self.store + self.nm if x.value()]) :05d} VP> [ {', '.join([str(x) for x in self.store])} ]" + (("\tnm -> [ " + ", ".join([str(x) for x in self.nm]) + " ]\n") if self.nm else "")
-        # return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score() : >.2e}) <{sum([x.cost for x in self.nm if x.value()]) :05d} VP> [ " + ", ".join([str(x) for x in self.nm if x.value()]) + " ]"
-        return f"{self.u + ':' : <25} {self.name : >16} #{self.tag : <5} -> ({self.score() : >.2e}) <{sum([x.cost for x in self.store]) :05d} VP> [ " + ", ".join([str(x) for x in self.store]) + " ]"
+        s += f"{self.u + ':' : <25}" + " " + f"{self.name : >16} #{self.tag : <5}"
+        s += " => "
+        s += f"({self.score() : >.2e})"
+        s += " < "
+        s += f"{self.get_vp_price() :05d} VP"
+        s += " -> "
+        s += f"${self.get_cost() :>3.2f}"
+        s += " > "
+
+        s += ( " [ " + ", ".join( [ str(x) for x in self.store ] ) + " ]" )
+
+        if self.nm:
+            s += "\n\t\tnm -> [ "
+            s +=    ", ".join( [ str(x) for x in self.nm ] )
+            s += " ]"
+
+        return s
+
 
     def print(self, i) -> str:
         return f"{i + 1 : >3d}. {self}"
@@ -48,10 +78,17 @@ class account(object):
 
         self.set_name(userinfo.json()["acct"])
 
-        store_resp = requests.get(f"https://pd.{self.region}.a.pvp.net/store/v2/storefront/{auth.user_id}", headers={"X-Riot-Entitlements-JWT": f"{auth.entitlements_token}", "Authorization": f"{auth.token_type} {auth.access_token}"})
+        store_resp = requests.get(f"https://pd.{self.region}.a.pvp.net/store/v2/storefront/{auth.user_id}",
+                                  headers={
+                                      "X-Riot-Entitlements-JWT": f"{auth.entitlements_token}",
+                                      "Authorization": f"{auth.token_type} {auth.access_token}",
+                                      "X-Riot-ClientPlatform": "ewogICAgInBsYXRmb3JtVHlwZSI6ICJQQyIsCiAgICAicGxhdGZvcm1PUyI6ICJXaW5kb3dzIiwKICAgICJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwKICAgICJwbGF0Zm9ybUNoaXBzZXQiOiAiVW5rbm93biIKfQ==",
+                                      "X-Riot-ClientVersion": "release-08.09-shipping-57-2521387"
+                                  })
 
         if store_resp.status_code != 200:
             print(f"error [{store_resp.status_code}]: could not get store for account '{self.u}'")
+            print(f"  reason: {store_resp.reason}")
             raise RuntimeError
 
         store: dict = store_resp.json()
@@ -89,5 +126,5 @@ class account(object):
         return self
 
     def score(self) -> float:
-        # return float(sum([x.value for x in self.store + self.nm]))
-        return float(sum([x.value() for x in self.nm]))
+        return float(sum([x.value() for x in self.store + self.nm]))
+        # return float(sum([x.value() for x in self.nm]))

@@ -5,7 +5,7 @@ from json import load
 
 
 # tuple(map(lambda x: x["name"], requests.get("https://api.henrikdev.xyz/valorant/v1/content").json()["equips"]))
-EQUIPS = ("Odin", "Ares", "Vandal", "Bulldog", "Phantom", "Judge", "Bucky", "Frenzy", "Classic", "Ghost", "Sheriff", "Shorty", "Operator", "Guardian", "Marshal", "Spectre", "Stinger")
+EQUIPS = ("Odin", "Ares", "Vandal", "Bulldog", "Phantom", "Judge", "Bucky", "Frenzy", "Classic", "Ghost", "Sheriff", "Shorty", "Operator", "Guardian", "Marshal", "Spectre", "Stinger", "Outlaw")
 
 # some colours from termcolor's documentation
 COLOURS = ("red", "yellow", "green", "cyan", "blue", "magenta")
@@ -27,14 +27,22 @@ SCORES: Dict[str, Tuple[str, float]] = get_scores()
 del get_scores
 
 # TODO: find a way to figure out how much per skin and then per account
-tr_prices = {
-    "115" : 17,
-    "485" : 70,
-    "925" : 130,
-    "1850": 250,
-    "3400": 450,
-    "5550": 700
-}
+class vp:
+
+    MYR_TO_AUD = 0.323947
+
+    def __init__(self, price, points):
+        self.price = price * vp.MYR_TO_AUD
+        self.points = points
+
+ml_prices = [
+    vp( 199.90, 6750 ),
+    vp( 104.90, 3400 ),
+    vp(  59.90, 1900 ),
+    vp(  39.90, 1250 ),
+    vp(  19.90,  600 ),
+    vp(  13.90,  375 ),
+]
 
 class skin(object):
 
@@ -59,7 +67,8 @@ class skin(object):
 
     def update_info_from_server(self, store_item: dict) -> None:
         self.cost = int(store_item.get("Cost", {}).get(VP_ID, 0))
-        self.name: str = SKINS.get(store_item.get("OfferID")).get("displayName", "")
+
+        self.name: str = SKINS.get(store_item.get("OfferID")).get("displayName", "").strip().replace("\u00d8", "O")
 
     def colour(self) -> str:
         return SCORES.get(self.name, ("dark_grey", 0.0))[0]

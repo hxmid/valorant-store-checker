@@ -3,6 +3,8 @@
 import json
 from time import sleep
 from typing import Dict, List
+from aiohttp import ClientOSError, ServerDisconnectedError
+from custom_auth import RiotAuth as CustomAuth
 from riot_auth import RiotAuth
 from riot_auth.auth_exceptions import RiotAuthenticationError, RiotRatelimitError
 import requests
@@ -65,15 +67,23 @@ def generate() -> None:
                         print(f"error: invalid user/pass for account '{acc.u}'")
                         raise e
 
-                    except ClientConnectorError:
-                        print(f"error: not connected yet, trying again ...")
-                        sleep(10)
+                    except ClientResponseError or RiotRatelimitError:
+                        print(f"debug: rate limited, waiting 15 seconds before retrying (try switching vpn location)")
+                        sleep(15)
                         continue
 
-                    except ClientResponseError or RiotRatelimitError:
-                        print(f"error: rate limited, switch vpn ...")
-                        input("\rready? ")
+                    except requests.exceptions.ConnectionError or ServerDisconnectedError or ClientOSError or ClientConnectorError or ConnectionRefusedError:
+                        print(f"debug: unreachable, switching ...")
                         continue
+
+                    except Exception as e:
+                        if CustomAuth.is_proxy_exception(e):
+                            print(f"debug: {str(e).lower()}, switching ...")
+                        elif isinstance(e, RuntimeError):
+                            print(f"failed to get store for account, retrying ...")
+                            sleep(15)
+                        else:
+                            raise e
 
                     else:
                         break
@@ -82,6 +92,7 @@ def generate() -> None:
                     accs.append(acc)
 
                 print(f"\tparsed {i + 1} account{'s' if i else ' '}  ...")
+                #sleep(60)
 
             with open("new_accounts.txt", "w") as f:
                 for acc in accs:
