@@ -43,69 +43,68 @@ def generate() -> None:
     RiotAuth.RIOT_CLIENT_USER_AGENT = f"RiotClient/{client_version} %s (Windows;10;;Professional, x64)"
 
     with open("accounts.txt", "r") as f:
-        with open("dump.txt", "w", encoding = "utf-8") as d:
-            accs: List[account] = []
+        accs: List[account] = []
 
-            for i, details in enumerate(f.read().splitlines()):
+        for i, details in enumerate(f.read().splitlines()):
 
-                if not details:
-                    continue
+            if not details:
+                continue
 
-                if details.startswith("//"):
-                    continue
+            if details.startswith("//"):
+                continue
 
-                if details == "---":
+            if details == "---":
+                break
+
+            acc = account(details)
+
+            while True:
+                try:
+                    acc.get_store()
+
+                except RiotAuthenticationError as e:
+                    print(f"error: invalid user/pass for account '{acc.u}'. skipping ...")
                     break
 
-                acc = account(details)
+                except ClientResponseError or RiotRatelimitError:
+                    print(f"debug: rate limited, waiting 15 seconds before retrying (try switching vpn location)")
+                    sleep(15)
+                    continue
 
-                while True:
-                    try:
-                        acc.get_store()
+                except requests.exceptions.ConnectionError or ServerDisconnectedError or ClientOSError or ClientConnectorError or ConnectionRefusedError:
+                    print(f"debug: unreachable, switching ...")
+                    continue
 
-                    except RiotAuthenticationError as e:
-                        print(f"error: invalid user/pass for account '{acc.u}'")
+                except Exception as e:
+                    if CustomAuth.is_proxy_exception(e):
+                        print(f"debug: {str(e).lower()}, switching ...")
+                    elif isinstance(e, RuntimeError):
+                        print(f"error: failed to get store for account, retrying ...")
+                        sleep(15)
+                    else:
                         raise e
 
-                    except ClientResponseError or RiotRatelimitError:
-                        print(f"debug: rate limited, waiting 15 seconds before retrying (try switching vpn location)")
-                        sleep(15)
-                        continue
+                else:
+                    break
 
-                    except requests.exceptions.ConnectionError or ServerDisconnectedError or ClientOSError or ClientConnectorError or ConnectionRefusedError:
-                        print(f"debug: unreachable, switching ...")
-                        continue
+            if acc.score() >= 0:
+                accs.append(acc)
 
-                    except Exception as e:
-                        if CustomAuth.is_proxy_exception(e):
-                            print(f"debug: {str(e).lower()}, switching ...")
-                        elif isinstance(e, RuntimeError):
-                            print(f"failed to get store for account, retrying ...")
-                            sleep(15)
-                        else:
-                            raise e
+            print(f"\tparsed {i + 1} account{'s' if i else ' '}  ...")
+            #sleep(60)
 
-                    else:
-                        break
-
+        with open("new_accounts.txt", "w") as f:
+            for acc in accs:
                 if acc.score() >= 0:
-                    accs.append(acc)
+                    f.write(f"{acc.region}:{acc.u}:{acc.p}\n")
 
-                print(f"\tparsed {i + 1} account{'s' if i else ' '}  ...")
-                #sleep(60)
+        accs.sort(key = lambda x: x.score(), reverse = True)
 
-            with open("new_accounts.txt", "w") as f:
-                for acc in accs:
-                    if acc.score() >= 0:
-                        f.write(f"{acc.region}:{acc.u}:{acc.p}\n")
+        for i, acc in enumerate(accs):
+            print(acc.print(i))
 
-            accs.sort(key = lambda x: x.score(), reverse = True)
-
-            for i, acc in enumerate(accs):
-                print(acc.print(i))
-
-            with open("stores.json", "w") as f:
-                json.dump([acc.asdict() for acc in accs], f, indent = 2)
+        with open("stores.json", "w") as f:
+            json.dump([acc.asdict() for acc in accs], f, indent = 2)
 
 
 
